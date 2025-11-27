@@ -60,7 +60,7 @@ public class Updater
 
             string downloadUrl = (string)asset["browser_download_url"];
 
-            string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update.zip");
+            string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "excel to pdf levent beylerce.exe");
 
             var bytes = await client.GetByteArrayAsync(downloadUrl);
             File.WriteAllBytes(localPath, bytes);

@@ -40,7 +40,38 @@ namespace excel_to_pdf_levent_beylerce
         public Form1()
         {
             InitializeComponent();
+
+
         }
+
+
+        // DragEnter olayı
+        private void ListBox1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+        }
+
+        // DragDrop olayı
+        private void ListBox1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileName(file);
+                if (!listBoxPaths.ContainsKey(fileName))
+                {
+                    listBox1.Items.Add(fileName);
+                    listBoxPaths[fileName] = file;
+                }
+            }
+
+            // Drag & Drop ile dosya geldiğinde buton text'ini değiştir
+            buttonAddConvert.Text = "Convert Et";
+        }
+
+
 
         // Ana işlemi başlatan düğme tıklama olayı
         private void button1_Click(object sender, EventArgs e)
@@ -611,75 +642,17 @@ namespace excel_to_pdf_levent_beylerce
 
         private async Task ProcessFileAsync(string file)
         {
-            string appFolder = AppDomain.CurrentDomain.BaseDirectory;
-            string pngFolder = Path.Combine(appFolder, "pngler");
-            string pdfFolder = Path.Combine(appFolder, "pdfler");
-
-            Directory.CreateDirectory(pngFolder);
-            Directory.CreateDirectory(pdfFolder);
-            foreach (var f in Directory.GetFiles(pdfFolder))
-                File.Delete(f);
-
-            string ext = Path.GetExtension(file).ToLower();
-
-
-            try
-                {
-                    await Task.Run(() =>
-                    {
-                        string[] pngPaths = null;
-
-                        // 1️⃣ Dosyayı PNG’ye dönüştür
-                        if (ext == ".docx" || ext == ".doc")
-                        {
-                            pngPaths = WordImageHelper.ConvertWordToHighResPng(file, pngFolder, 150);
-                        }
-                        else if (ext == ".xlsx" || ext == ".xls")
-                        {
-                            pngPaths = ExcelImageHelper.ConvertExcelToHighResPng(file, pngFolder, 150);
-                        }
-
-                        // 2️⃣ Safe format ve PDF işlemleri
-                        int total = pngPaths.Length;
-                        for (int i = 0; i < total; i++)
-                        {
-                            // Safe PNG
-                            var safe = ConvertPngToSafeFormat(new string[] { pngPaths[i] });
-
-                            // UI Thread’de progress güncelle
-                            this.Invoke((Action)(() =>
-                            {
-                                int percent = (i + 1) * 100 / total;
-
-                            }));
-                        }
-
-                        var safePngs = ConvertPngToSafeFormat(pngPaths);
-                        string pdfPath = Path.Combine(pdfFolder, "RaporFinal.pdf");
-                        ConvertPngListToPdf(safePngs, pdfPath);
-                    });
-
-                    ClearFolder(pngFolder);
-
-                    Process.Start("explorer.exe", pdfFolder);
-
-
-                    MessageBox.Show(
-                        $"PDF hazır:\n{pdfFolder}\\RaporFinal.pdf",
-                        "İşlem Tamam",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-                    buttonAddConvert.Enabled = true;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Hata oluştu:\n" + ex.Message);
-                }
+            
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // Updater updater = new Updater();
+            //  await updater.CheckUpdate();
+            listBox1.AllowDrop = true;
+            listBox1.DragEnter += ListBox1_DragEnter;
+            listBox1.DragDrop += ListBox1_DragDrop;
+
             if (buttonAddConvert.Text == "DOSYA EKLE (Excel  &&  Word)")
             {
                 button4.Visible = false;
