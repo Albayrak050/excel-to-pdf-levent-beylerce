@@ -510,7 +510,7 @@ namespace excel_to_pdf_levent_beylerce
                                 pngPaths = ExcelImageHelper.ConvertExcelToHighResPng(file, filePngFolder, 200);
 
                             if (pngPaths == null || pngPaths.Length == 0)
-                                throw new Exception("Hiç PNG üretilmedi!");
+                                throw new Exception("PNG üretilmedi!");
 
                             // PNG logları ve progress
                             foreach (var png in pngPaths)
