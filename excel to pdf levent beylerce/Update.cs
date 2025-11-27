@@ -4,56 +4,67 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-class Update
+public class Updater
 {
-    static string CurrentVersion = "1.0.0"; // bu senin şu anki versiyonun
+    private readonly string CurrentVersion = "1.0.0"; // programının versiyonu
 
-    static async Task Main()
+    public async Task CheckUpdate()
     {
         string latest = await GetLatestVersion();
-        Console.WriteLine("Latest version: " + latest);
 
         if (latest != CurrentVersion)
         {
-            Console.WriteLine("Yeni sürüm var: " + latest);
+            System.Windows.Forms.MessageBox.Show(
+                $"Yeni sürüm bulundu: {latest}\nGüncelleme indiriliyor..."
+            );
+
             string zipPath = await DownloadLatestAsset();
-            Console.WriteLine("Güncelleme indirildi: " + zipPath);
-            // Burada updater / unzip / çalıştır vs işlemlerini yapabilirsin
+
+            System.Windows.Forms.MessageBox.Show(
+                $"Güncelleme indirildi:\n{zipPath}\nZip'i açıp kurulumu yapmak size kaldı."
+            );
         }
         else
         {
-            Console.WriteLine("Zaten en son sürümdesin.");
+            System.Windows.Forms.MessageBox.Show("Zaten en son sürüm kullanılıyor.");
         }
     }
 
-    static async Task<string> GetLatestVersion()
+    private async Task<string> GetLatestVersion()
     {
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("User-Agent", "MyAppUpdater");
+
             string url = "https://api.github.com/repos/Albayrak050/excel-to-pdf-levent-beylerce/releases/latest";
+
             var json = await client.GetStringAsync(url);
             var obj = JObject.Parse(json);
             return (string)obj["tag_name"];
         }
     }
 
-    static async Task<string> DownloadLatestAsset()
+    private async Task<string> DownloadLatestAsset()
     {
         using (HttpClient client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("User-Agent", "MyAppUpdater");
             string url = "https://api.github.com/repos/Albayrak050/excel-to-pdf-levent-beylerce/releases/latest";
+
             var json = await client.GetStringAsync(url);
             var obj = JObject.Parse(json);
             var asset = obj["assets"]?[0];
+
             if (asset == null)
                 throw new Exception("Asset bulunamadı.");
 
             string downloadUrl = (string)asset["browser_download_url"];
-            string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "excel.to.pdf.levent.beylerce.exe");
+
+            string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "update.zip");
+
             var bytes = await client.GetByteArrayAsync(downloadUrl);
             File.WriteAllBytes(localPath, bytes);
+
             return localPath;
         }
     }
